@@ -74,7 +74,7 @@
 
         <main class="grow">
             <div id="loading" class="text-center py-24 text-gray-400">
-                <i class="fa-solid fa-spinner animate-spin text-2xl text-gray-990 mb-2"></i>
+                <i class="fa-solid fa-spinner animate-spin text-2xl text-gray-950 mb-2"></i>
                 <div class="text-xs font-medium">データを同期中...</div>
             </div>
 
@@ -106,7 +106,11 @@
             
             <div class="w-full md:w-1/2 p-5 md:p-6 flex flex-col justify-between overflow-y-auto bg-white pb-24 md:pb-6">
                 <div>
-                    <span id="modal-category" class="text-[9px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">CATEGORY</span>
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span id="modal-category" class="text-[9px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">CATEGORY</span>
+                        <span id="modal-status" class="hidden text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md"></span>
+                    </div>
+                    
                     <h2 id="modal-name" class="text-base md:text-xl font-black text-gray-900 mt-1.5 leading-tight">商品名</h2>
                     <div id="modal-id" class="text-[10px] text-gray-400 mt-0.5 font-mono">ID: -----</div>
                     <div id="modal-price" class="text-xl font-black text-amber-600 mt-2">¥0</div>
@@ -222,12 +226,17 @@
                     const price = row.c[4] ? row.c[4].v : '価格未定';
                     const description = row.c[5] ? row.c[5].v : '';
                     const sizesStr = row.c[6] ? String(row.c[6].v) : '';
+                    // 空白なら安全のため非公開にする
+                    const status = row.c[7] ? String(row.c[7].v).trim() : '非公開';
 
                     const images = imageStr.split(',').map(img => img.trim()).filter(img => img);
                     const sizes = sizesStr ? sizesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
                     if (name && name !== 'name') {
-                        products.push({ id, name, category, images, price, description, sizes });
+                        // 🌟 非公開以外（販売中、生産中・準備中）はすべてデータ配列に格納して表示対象にする
+                        if (status !== '非公開') {
+                            products.push({ id, name, category, images, price, description, sizes, status });
+                        }
                     }
                 });
 
@@ -278,14 +287,21 @@
                 noResults.classList.add('hidden');
                 filtered.forEach(product => {
                     const card = document.createElement('div');
-                    card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group";
+                    card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative";
                     card.onclick = () => openModal(product);
                     
                     const firstImage = product.images[0] || 'https://placehold.co/400?text=No+Image';
 
+                    // 🌟 「生産中・準備中」のバッジ表示をより見やすく（太字、オレンジ背景、シャドウ付）
+                    let statusBadge = '';
+                    if (product.status === '生産中・準備中') {
+                        statusBadge = `<span class="absolute top-2 left-2 z-10 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-md border border-amber-400/20"><i class="fa-solid fa-hammer mr-1 text-[9px]"></i>準備中</span>`;
+                    }
+
                     card.innerHTML = `
                         <div>
                             <div class="aspect-square bg-gray-50 overflow-hidden relative">
+                                ${statusBadge}
                                 <img src="${firstImage}" class="w-full h-full object-cover">
                             </div>
                             <div class="p-3">
@@ -336,6 +352,25 @@
             updateModalImage();
             
             document.getElementById('modal-category').innerText = product.category;
+            
+            // 🌟 詳細モーダルのステータス表示制御
+            const modalStatus = document.getElementById('modal-status');
+            const cartBtn = document.getElementById('modal-cart-btn');
+
+            if (product.status === '生産中・準備中') {
+                modalStatus.innerText = "⚠️ 生産中・準備中";
+                modalStatus.classList.remove('hidden');
+                
+                // カート追加ボタンを無効化（グレーアウト、ポインターイベント無効）
+                cartBtn.innerHTML = `<i class="fa-solid fa-ban text-xs"></i> ただいま準備中です`;
+                cartBtn.className = "w-3/4 md:w-full bg-gray-300 text-gray-500 font-bold h-12 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed text-sm shadow-none pointer-events-none";
+            } else {
+                // 販売中の場合はステータス非表示、カートボタンを通常化
+                modalStatus.classList.add('hidden');
+                cartBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加`;
+                cartBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-bold h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm shadow-md";
+            }
+
             document.getElementById('modal-name').innerText = product.name;
             document.getElementById('modal-id').innerText = `PRODUCT ID: ${product.id}`;
             document.getElementById('modal-price').innerText = product.price;
@@ -407,6 +442,9 @@
         }
 
         function changeModalQty(val) {
+            // 生産中・準備中商品の時は数量も変更不可にする安全ガード
+            if(activeProduct && activeProduct.status === '生産中・準備中') return;
+
             const qtyInput = document.getElementById('modal-qty');
             let nextVal = parseInt(qtyInput.value) + val;
             if (nextVal >= 1) qtyInput.value = nextVal;
@@ -429,6 +467,9 @@
         }
 
         function addToCart() {
+            // 安全ガード（生産中・準備中の場合は実行させない）
+            if (activeProduct && activeProduct.status === '生産中・準備中') return;
+
             if (!selectedSize) {
                 alert('サイズを選択してください！');
                 return;
