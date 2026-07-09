@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TOPLAND</title>
+    <title>TOPLAND公式-業界最高品質のアパレルを提供</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -15,7 +15,6 @@
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
         
-        /* スマホ用ボトムシートのスムーズなアニメーション */
         @media (max-width: 767px) {
             .modal-animate {
                 transform: translateY(100%);
@@ -119,7 +118,7 @@
                 <div id="modal-step-1" class="flex flex-col md:flex-row gap-4 md:gap-6">
                     <div class="w-full md:w-1/2 flex flex-col shrink-0 relative">
                         <div class="w-full aspect-square max-h-[32vh] md:max-h-none overflow-hidden bg-gray-50 rounded-2xl relative flex items-center justify-center p-2 border border-gray-100 shadow-2xs">
-                            <img id="modal-main-image" src="" class="w-full h-full object-contain transition-all duration-300">
+                            <img id="modal-main-image" src="" onclick="openLightbox()" class="w-full h-full object-contain transition-all duration-300 cursor-zoom-in" title="タップで拡大表示">
                             <button onclick="prevImage()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
                             <button onclick="nextImage()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
                         </div>
@@ -184,6 +183,24 @@
         </div>
     </div>
 
+    <div id="lightbox-modal" class="fixed inset-0 bg-black/95 z-60 flex items-center justify-center p-4 backdrop-blur-md hidden transition-opacity duration-300 opacity-0" onclick="closeLightbox()">
+        <button onclick="closeLightbox()" class="absolute top-4 right-4 text-white/70 hover:text-white text-2xl w-12 h-12 flex items-center justify-center cursor-pointer z-10 bg-black/20 rounded-full backdrop-blur-xs">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <button onclick="event.stopPropagation(); prevImage();" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer z-10 active:scale-90">
+            <i class="fa-solid fa-chevron-left text-lg"></i>
+        </button>
+        
+        <div class="max-w-full max-h-[82vh] flex items-center justify-center p-2" onclick="event.stopPropagation()">
+            <img id="lightbox-image" src="" class="max-w-full max-h-[82vh] object-contain rounded-xl select-none shadow-2xl transition-all duration-300 cursor-zoom-out" onclick="closeLightbox()" title="タップで閉じる">
+        </div>
+        
+        <button onclick="event.stopPropagation(); nextImage();" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/10 hover:bg-white/20 text-white w-12 h-12 rounded-full flex items-center justify-center transition-all cursor-pointer z-10 active:scale-90">
+            <i class="fa-solid fa-chevron-right text-lg"></i>
+        </button>
+    </div>
+
     <div id="cart-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-sm hidden" onclick="toggleCartModal()">
         <div class="bg-white w-full md:w-full md:max-w-md rounded-t-3xl md:rounded-2xl p-5 shadow-2xl flex flex-col max-h-[85vh]" onclick="event.stopPropagation()">
             <div class="flex items-center justify-between border-b border-gray-100 pb-3">
@@ -225,7 +242,7 @@
         let activeProduct = null;
         let selectedSize = '';
         let currentImageIdx = 0;
-        let currentStep = 1; // 1: 詳細, 2: サイズ数量選択
+        let currentStep = 1;
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -388,7 +405,6 @@
 
             updateModalImage();
 
-            // 【スマホ改善】不要な行を全削除し、商品名の文頭にブランドバッジを美しく完全融合
             let nameHtml = `<span class="text-[10px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase inline-flex items-center mr-2 select-none align-middle">${product.category}</span>`;
             if (product.status === '生産中・準備中') {
                 nameHtml += `<span class="text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-flex items-center mr-2 select-none align-middle">準備中</span>`;
@@ -399,7 +415,6 @@
             document.getElementById('price-text').innerText = product.price;
             document.getElementById('modal-description').innerText = product.description;
             
-            // サムネイル生成
             const thumbContainer = document.getElementById('modal-thumbnails');
             thumbContainer.innerHTML = '';
             product.images.forEach((imgUrl, idx) => {
@@ -410,12 +425,10 @@
                 thumbContainer.appendChild(img);
             });
 
-            // STEP 2 用の情報同期
             document.getElementById('modal-step2-mini-img').src = product.images[0] || 'https://placehold.co/400?text=No+Image';
             document.getElementById('modal-step2-name').innerText = product.name;
             document.getElementById('modal-step2-price').innerText = product.price;
 
-            // サイズコンテナの生成
             const sizeContainer = document.getElementById('modal-size-container');
             sizeContainer.innerHTML = '';
             if (product.sizes.length === 0) {
@@ -437,7 +450,6 @@
 
             goToStep(1);
 
-            // モーダルの表示制御
             const modalEl = document.getElementById('product-modal');
             modalEl.classList.remove('hidden');
             setTimeout(() => {
@@ -449,14 +461,12 @@
             document.body.style.overflow = 'hidden';
         }
 
-        // STEPの切り替えロジック（画面が小さくても完全に崩れない独立ポップアップ構造）
         function goToStep(step) {
             currentStep = step;
             const step1 = document.getElementById('modal-step-1');
             const step2 = document.getElementById('modal-step-2');
             const primaryBtn = document.getElementById('modal-primary-btn');
             
-            // スクロール位置を最上部に強制リセット（スクロールバグ対策）
             document.getElementById('modal-scroll-body').scrollTop = 0;
 
             if (activeProduct && activeProduct.status === '生産中・準備中') {
@@ -488,12 +498,19 @@
             }
         }
 
+        // 連動型画像アップデートシステム（詳細画面＆拡大画面をダブル同期）
         function updateModalImage() {
             if (!activeProduct || activeProduct.images.length === 0) {
-                document.getElementById('modal-main-image').src = 'https://placehold.co/400?text=No+Image';
+                const noImg = 'https://placehold.co/400?text=No+Image';
+                document.getElementById('modal-main-image').src = noImg;
+                document.getElementById('lightbox-image').src = noImg;
                 return;
             }
-            document.getElementById('modal-main-image').src = activeProduct.images[currentImageIdx];
+            
+            const targetSrc = activeProduct.images[currentImageIdx];
+            document.getElementById('modal-main-image').src = targetSrc;
+            document.getElementById('lightbox-image').src = targetSrc; // 拡大画面も同期
+
             const thumbs = document.getElementById('modal-thumbnails').querySelectorAll('img');
             thumbs.forEach((t, idx) => {
                 t.className = idx === currentImageIdx 
@@ -512,6 +529,25 @@
             if (!activeProduct || activeProduct.images.length <= 1) return;
             currentImageIdx = (currentImageIdx - 1 + activeProduct.images.length) % activeProduct.images.length;
             updateModalImage();
+        }
+
+        // フルスクリーン拡大（ライトボックス）起動用関数
+        function openLightbox() {
+            if (!activeProduct || activeProduct.images.length === 0) return;
+            const lightbox = document.getElementById('lightbox-modal');
+            lightbox.classList.remove('hidden');
+            setTimeout(() => {
+                lightbox.classList.remove('opacity-0');
+                lightbox.classList.add('opacity-100');
+            }, 10);
+        }
+
+        // フルスクリーン拡大（ライトボックス）終了用関数
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox-modal');
+            lightbox.classList.remove('opacity-100');
+            lightbox.classList.add('opacity-0');
+            setTimeout(() => lightbox.classList.add('hidden'), 300);
         }
 
         function changeModalQty(val) {
