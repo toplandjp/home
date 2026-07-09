@@ -18,6 +18,8 @@
 </head>
 <body class="bg-[#f8f9fa] text-gray-900 antialiased font-sans selection:bg-blue-500 selection:text-white">
 
+    <div id="toast-container" class="fixed bottom-24 md:bottom-6 left-1/2 -translate-x-1/2 z-99 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
     <div class="bg-[#5865F2] text-white text-xs font-bold py-2.5 px-4 sticky top-0 z-55 shadow-sm flex justify-between items-center h-10">
         <div class="flex items-center gap-1.5 truncate">
             <i class="fa-brands fa-discord animate-bounce text-sm shrink-0"></i>
@@ -51,24 +53,35 @@
         
         <div class="px-4 pb-3 bg-white block md:hidden">
             <div class="relative">
-                <input type="text" id="search-input-mobile" placeholder="商品名、カテゴリ、IDで検索..." 
+                <input type="text" id="search-input-mobile" placeholder="商品名、ブランド、IDで検索..." 
                        class="w-full pl-9 pr-4 h-10 bg-gray-50 border border-gray-100 rounded-xl text-xs focus:outline-hidden focus:ring-2 focus:ring-gray-950">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-3.5 text-gray-400 text-[11px]"></i>
+            </div>
+            
+            <div class="mt-2 border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                <button onclick="toggleMobileCategoryMenu()" class="w-full px-4 h-10 flex items-center justify-between text-xs font-bold text-gray-700 cursor-pointer select-none">
+                    <span><i class="fa-solid fa-tags mr-1.5 text-gray-400"></i> ブランドから探す：<span id="mobile-current-category">すべて</span></span>
+                    <i id="mobile-menu-arrow" class="fa-solid fa-chevron-down text-[10px] text-gray-400 transition-transform duration-200"></i>
+                </button>
+                <div id="mobile-category-dropdown" class="hidden border-t border-gray-200 bg-white p-2 flex flex-col gap-1">
+                    <button onclick="filterCategory('すべて', this, true)" class="w-full text-left px-3 h-9 rounded-lg text-xs font-bold bg-gray-900 text-white mobile-cat-btn flex items-center gap-2">
+                        <i class="fa-solid fa-border-all text-[10px]"></i> 全て
+                    </button>
+                    <div id="mobile-category-list" class="flex flex-col gap-1"></div>
+                </div>
             </div>
         </div>
     </header>
 
     <div class="max-w-7xl mx-auto px-4 py-4 md:py-8 flex flex-col md:flex-row gap-4 md:gap-8">
         
-        <aside class="w-full md:w-56 shrink-0 z-30 relative">
-            <div class="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-[#f8f9fa] to-transparent z-10 pointer-events-none md:hidden"></div>
-            
-            <div class="bg-white md:rounded-2xl border-b md:border border-gray-100 p-2 md:p-4 sticky top-26 md:shadow-xs -mx-4 md:mx-0 overflow-x-auto category-scroll flex md:flex-col gap-1.5 pb-3 md:pb-4">
-                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest hidden md:block mb-2 px-1">Categories</div>
-                <button onclick="filterCategory('すべて', this)" class="whitespace-nowrap flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold bg-gray-900 text-white category-btn transition-all cursor-pointer shrink-0">
+        <aside class="w-full md:w-56 shrink-0 z-30 relative hidden md:block">
+            <div class="bg-white md:rounded-2xl border border-gray-100 p-4 sticky top-26 md:shadow-xs flex md:flex-col gap-1.5">
+                <div class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 px-1">Brands</div>
+                <button onclick="filterCategory('すべて', this, false)" class="w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold bg-gray-900 text-white pc-cat-btn transition-all cursor-pointer">
                     <i class="fa-solid fa-border-all text-[10px]"></i> 全て
                 </button>
-                <div id="category-list" class="flex md:flex-col gap-1.5"></div>
+                <div id="pc-category-list" class="flex md:flex-col gap-1.5"></div>
             </div>
         </aside>
 
@@ -88,26 +101,26 @@
     </div>
 
     <div id="product-modal" class="fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs hidden" onclick="closeModal()">
-        <div class="bg-white w-full md:w-full md:max-w-4xl rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[88vh] md:max-h-[85vh]" onclick="event.stopPropagation()">
+        <div class="bg-white w-full md:w-full md:max-w-4xl rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[92vh] md:max-h-[85vh]" onclick="event.stopPropagation()">
             
-            <div class="w-full md:w-1/2 bg-gray-50 flex flex-col justify-between p-3 md:p-4 border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
-                <div class="w-full aspect-square rounded-xl overflow-hidden bg-white border border-gray-100/60 relative group">
-                    <img id="modal-main-image" src="" class="w-full h-full object-cover transition-all duration-300">
+            <div class="w-full md:w-1/2 bg-gray-100 flex flex-col justify-center p-3 md:p-4 border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
+                <div class="w-full h-[35vh] md:h-auto md:aspect-square rounded-xl overflow-hidden bg-white border border-gray-100/60 relative group flex items-center justify-center">
+                    <img id="modal-main-image" src="" class="w-full h-full object-contain transition-all duration-300">
                     
-                    <button onclick="prevImage()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
-                        <i class="fa-solid fa-chevron-left text-sm"></i>
+                    <button onclick="prevImage()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
+                        <i class="fa-solid fa-chevron-left text-xs"></i>
                     </button>
-                    <button onclick="nextImage()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-10 h-10 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
-                        <i class="fa-solid fa-chevron-right text-sm"></i>
+                    <button onclick="nextImage()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-9 h-9 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
-                <div id="modal-thumbnails" class="flex gap-2 mt-2 overflow-x-auto category-scroll py-1"></div>
+                <div id="modal-thumbnails" class="flex gap-2 mt-2 overflow-x-auto category-scroll py-1 justify-center"></div>
             </div>
             
             <div class="w-full md:w-1/2 p-5 md:p-6 flex flex-col justify-between overflow-y-auto bg-white pb-24 md:pb-6">
                 <div>
                     <div class="flex items-center gap-2 flex-wrap">
-                        <span id="modal-category" class="text-[9px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">CATEGORY</span>
+                        <span id="modal-category" class="text-[9px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">BRAND</span>
                         <span id="modal-status" class="hidden text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md"></span>
                     </div>
                     
@@ -135,8 +148,8 @@
                 </div>
                 
                 <div class="fixed md:relative bottom-0 left-0 right-0 bg-white p-4 md:p-0 border-t md:border-t-0 border-gray-100 flex gap-2 z-20">
-                    <button onclick="closeModal()" class="w-1/4 bg-gray-100 text-gray-500 font-medium h-12 rounded-xl text-xs cursor-pointer md:hidden">
-                        戻る
+                    <button onclick="closeModal()" class="w-1/4 bg-gray-800 hover:bg-gray-700 text-white font-bold h-12 rounded-xl text-xs cursor-pointer md:hidden shadow-md flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-angle-left"></i> 戻る
                     </button>
                     <button id="modal-cart-btn" onclick="addToCart()" class="w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-bold h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm shadow-md">
                         <i class="fa-solid fa-plus text-xs"></i> カートに追加
@@ -188,6 +201,32 @@
         let selectedSize = '';
         let currentImageIdx = 0;
 
+        // 🌟 スマホ・PC共通 独自トースト通知システム
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // タイプ別の色分け
+            const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+            const icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
+
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold transition-all duration-300 opacity-0 translate-y-2 pointer-events-auto`;
+            toast.innerHTML = `${icon} <span>${message}</span>`;
+            
+            container.appendChild(toast);
+
+            // 表示アニメーション
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            // 3秒後に消去
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function cleanText(str) {
             if (!str) return '';
             return String(str).toLowerCase()
@@ -226,14 +265,12 @@
                     const price = row.c[4] ? row.c[4].v : '価格未定';
                     const description = row.c[5] ? row.c[5].v : '';
                     const sizesStr = row.c[6] ? String(row.c[6].v) : '';
-                    // 空白なら安全のため非公開にする
                     const status = row.c[7] ? String(row.c[7].v).trim() : '非公開';
 
                     const images = imageStr.split(',').map(img => img.trim()).filter(img => img);
                     const sizes = sizesStr ? sizesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
                     if (name && name !== 'name') {
-                        // 🌟 非公開以外（販売中、生産中・準備中）はすべてデータ配列に格納して表示対象にする
                         if (status !== '非公開') {
                             products.push({ id, name, category, images, price, description, sizes, status });
                         }
@@ -292,7 +329,6 @@
                     
                     const firstImage = product.images[0] || 'https://placehold.co/400?text=No+Image';
 
-                    // 🌟 「生産中・準備中」のバッジ表示をより見やすく（太字、オレンジ背景、シャドウ付）
                     let statusBadge = '';
                     if (product.status === '生産中・準備中') {
                         statusBadge = `<span class="absolute top-2 left-2 z-10 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-md border border-amber-400/20"><i class="fa-solid fa-hammer mr-1 text-[9px]"></i>準備中</span>`;
@@ -300,9 +336,9 @@
 
                     card.innerHTML = `
                         <div>
-                            <div class="aspect-square bg-gray-50 overflow-hidden relative">
+                            <div class="aspect-square bg-gray-50 overflow-hidden relative flex items-center justify-center p-1">
                                 ${statusBadge}
-                                <img src="${firstImage}" class="w-full h-full object-cover">
+                                <img src="${firstImage}" class="w-full h-full object-contain">
                             </div>
                             <div class="p-3">
                                 <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">${product.category}</span>
@@ -320,26 +356,60 @@
         }
 
         function initCategories() {
-            const list = document.getElementById('category-list');
-            list.innerHTML = '';
-            const categories = [...new Set(products.map(p => p.category))];
+            const pcList = document.getElementById('pc-category-list');
+            const mobileList = document.getElementById('mobile-category-list');
+            
+            pcList.innerHTML = '';
+            mobileList.innerHTML = '';
+
+            const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
             
             categories.forEach(cat => {
-                if(!cat) return;
-                const button = document.createElement('button');
-                button.onclick = () => filterCategory(cat, button);
-                button.className = "whitespace-nowrap flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 category-btn transition-all cursor-pointer shrink-0";
-                button.innerHTML = `<i class="fa-regular fa-folder text-gray-400 text-[10px]"></i> ${cat}`;
-                list.appendChild(button);
+                const pcBtn = document.createElement('button');
+                pcBtn.onclick = () => filterCategory(cat, pcBtn, false);
+                pcBtn.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 pc-cat-btn transition-all cursor-pointer";
+                pcBtn.innerHTML = `<i class="fa-solid fa-tag text-gray-400 text-[10px]"></i> ${cat}`;
+                pcList.appendChild(pcBtn);
+
+                const mobileBtn = document.createElement('button');
+                mobileBtn.onclick = () => filterCategory(cat, mobileBtn, true);
+                mobileBtn.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-medium text-gray-600 bg-gray-50 mobile-cat-btn flex items-center gap-2";
+                mobileBtn.innerHTML = `<i class="fa-solid fa-tag text-gray-400 text-[11px]"></i> ${cat}`;
+                mobileList.appendChild(mobileBtn);
             });
         }
 
-        function filterCategory(category, element) {
+        function toggleMobileCategoryMenu() {
+            const dropdown = document.getElementById('mobile-category-dropdown');
+            const arrow = document.getElementById('mobile-menu-arrow');
+            const isHidden = dropdown.classList.contains('hidden');
+            
+            if (isHidden) {
+                dropdown.classList.remove('hidden');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                dropdown.classList.add('hidden');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        function filterCategory(category, element, isMobile) {
             currentCategory = category;
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.className = "whitespace-nowrap flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 category-btn transition-all cursor-pointer shrink-0";
-            });
-            element.className = "whitespace-nowrap flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold bg-gray-900 text-white category-btn transition-all cursor-pointer shrink-0";
+
+            if (isMobile) {
+                document.getElementById('mobile-current-category').innerText = category;
+                document.querySelectorAll('.mobile-cat-btn').forEach(btn => {
+                    btn.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-medium text-gray-600 bg-gray-50 mobile-cat-btn flex items-center gap-2";
+                });
+                element.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-bold bg-gray-900 text-white mobile-cat-btn flex items-center gap-2";
+                toggleMobileCategoryMenu();
+            } else {
+                document.querySelectorAll('.pc-cat-btn').forEach(btn => {
+                    btn.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 pc-cat-btn transition-all cursor-pointer";
+                });
+                element.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold bg-gray-900 text-white pc-cat-btn transition-all cursor-pointer";
+            }
+
             renderProducts();
         }
 
@@ -353,7 +423,6 @@
             
             document.getElementById('modal-category').innerText = product.category;
             
-            // 🌟 詳細モーダルのステータス表示制御
             const modalStatus = document.getElementById('modal-status');
             const cartBtn = document.getElementById('modal-cart-btn');
 
@@ -361,11 +430,9 @@
                 modalStatus.innerText = "⚠️ 生産中・準備中";
                 modalStatus.classList.remove('hidden');
                 
-                // カート追加ボタンを無効化（グレーアウト、ポインターイベント無効）
                 cartBtn.innerHTML = `<i class="fa-solid fa-ban text-xs"></i> ただいま準備中です`;
                 cartBtn.className = "w-3/4 md:w-full bg-gray-300 text-gray-500 font-bold h-12 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed text-sm shadow-none pointer-events-none";
             } else {
-                // 販売中の場合はステータス非表示、カートボタンを通常化
                 modalStatus.classList.add('hidden');
                 cartBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加`;
                 cartBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-bold h-12 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-sm shadow-md";
@@ -381,7 +448,7 @@
             product.images.forEach((imgUrl, idx) => {
                 const img = document.createElement('img');
                 img.src = imgUrl;
-                img.className = `w-12 h-12 object-cover rounded-lg border-2 shrink-0 transition-all ${idx === 0 ? 'border-gray-900 opacity-100' : 'border-transparent opacity-50'}`;
+                img.className = `w-12 h-12 object-contain bg-white rounded-lg border-2 shrink-0 transition-all ${idx === 0 ? 'border-gray-900 opacity-100' : 'border-transparent opacity-50'}`;
                 img.onclick = () => {
                     currentImageIdx = idx;
                     updateModalImage();
@@ -422,9 +489,9 @@
             const thumbs = document.getElementById('modal-thumbnails').querySelectorAll('img');
             thumbs.forEach((t, idx) => {
                 if (idx === currentImageIdx) {
-                    t.className = "w-12 h-12 object-cover rounded-lg border-2 border-gray-900 opacity-100 shrink-0 transition-all";
+                    t.className = "w-12 h-12 object-contain bg-white rounded-lg border-2 border-gray-900 opacity-100 shrink-0 transition-all";
                 } else {
-                    t.className = "w-12 h-12 object-cover rounded-lg border-2 border-transparent opacity-50 shrink-0 transition-all";
+                    t.className = "w-12 h-12 object-contain bg-white rounded-lg border-2 border-transparent opacity-50 shrink-0 transition-all";
                 }
             });
         }
@@ -442,7 +509,6 @@
         }
 
         function changeModalQty(val) {
-            // 生産中・準備中商品の時は数量も変更不可にする安全ガード
             if(activeProduct && activeProduct.status === '生産中・準備中') return;
 
             const qtyInput = document.getElementById('modal-qty');
@@ -467,11 +533,11 @@
         }
 
         function addToCart() {
-            // 安全ガード（生産中・準備中の場合は実行させない）
             if (activeProduct && activeProduct.status === '生産中・準備中') return;
 
             if (!selectedSize) {
-                alert('サイズを選択してください！');
+                // 🌟 アラートをトースト通知（エラー）に変更
+                showToast('サイズを選択してください！', 'error');
                 return;
             }
             const qty = parseInt(document.getElementById('modal-qty').value);
@@ -490,6 +556,8 @@
                 updateCart();
                 closeModal();
                 toggleCartModal();
+                // 🌟 カート追加完了のトースト
+                showToast('カートに商品を追加しました');
             }
         }
 
@@ -497,6 +565,7 @@
             cart.splice(index, 1);
             saveCartToStorage();
             updateCart();
+            showToast('カートから削除しました', 'error');
         }
 
         function saveCartToStorage() {
@@ -524,7 +593,7 @@
                 const firstImg = item.product.images[0] || 'https://placehold.co/400?text=No+Image';
                 
                 div.innerHTML = `
-                    <img src="${firstImg}" class="w-12 h-12 object-cover rounded-lg bg-white border border-gray-100 shrink-0">
+                    <img src="${firstImg}" class="w-12 h-12 object-contain bg-white rounded-lg border border-gray-100 shrink-0">
                     <div class="grow min-w-0">
                         <h4 class="text-xs font-bold text-gray-900 truncate">${item.product.name}</h4>
                         <div class="flex items-center justify-between mt-1 gap-1">
@@ -554,7 +623,8 @@
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(input.value).then(() => {
-                    alert('注文用コードをコピーしました！Discordに貼り付けてください。');
+                    // 🌟 アラートをトースト通知に変更
+                    showToast('注文用コードをコピーしました！');
                 }).catch(() => {
                     fallbackCopy(input);
                 });
@@ -567,7 +637,8 @@
             input.select();
             input.setSelectionRange(0, 99999);
             document.execCommand('copy');
-            alert('注文用コードをコピーしました！Discordに貼り付けてください。');
+            // 🌟 アラートをトースト通知に変更
+            showToast('注文用コードをコピーしました！');
         }
 
         function toggleCartModal() {
