@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ショッピングカート - TOPLAND</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-[#f8f9fa] text-gray-900 antialiased font-sans">
+
+    <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-99 flex flex-col gap-2 pointer-events-none w-[90%] max-w-sm"></div>
+
+    <header class="bg-white border-b border-gray-100 sticky top-0 z-40 shadow-xs h-16 flex items-center justify-between px-4">
+        <a href="../" class="text-xs font-black text-gray-600 hover:text-gray-900 flex items-center gap-1">
+            <i class="fa-solid fa-chevron-left text-[10px]"></i> お買い物を続ける
+        </a>
+        <h1 class="text-sm font-black text-gray-900 tracking-tight">ショッピングカート</h1>
+        <div class="w-16"></div> </header>
+
+    <main class="max-w-xl mx-auto p-4 md:py-8 space-y-4">
+        
+        <div id="shipping-meter-container" class="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs space-y-2">
+            <div class="flex justify-between items-center text-xs font-bold">
+                <span id="shipping-status-text" class="text-gray-700">計算中...</span>
+                <span class="text-gray-400">¥10,000以上で送料無料</span>
+            </div>
+            <div class="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden">
+                <div id="shipping-progress-bar" class="bg-emerald-500 h-full w-0 transition-all duration-500"></div>
+            </div>
+        </div>
+
+        <div id="cart-list" class="space-y-3"></div>
+
+        <div class="bg-white p-4 rounded-2xl border border-gray-100 shadow-2xs space-y-3">
+            <div class="flex justify-between items-center text-xs font-medium text-gray-500">
+                <span>商品小計</span>
+                <span id="subtotal-price" class="font-bold text-gray-800">¥0</span>
+            </div>
+            <div class="flex justify-between items-center text-xs font-medium text-gray-500 border-b border-gray-50 pb-3">
+                <span>送料</span>
+                <span id="shipping-fee" class="font-bold text-gray-800">¥0</span>
+            </div>
+            <div class="flex justify-between items-center">
+                <span class="text-sm font-black text-gray-900">合計金額 (税込)</span>
+                <span id="total-price" class="text-xl md:text-2xl font-black text-amber-600 tracking-tight">¥0</span>
+            </div>
+        </div>
+
+        <div class="bg-gray-900 text-white p-5 rounded-2xl shadow-xl space-y-4">
+            <div class="bg-amber-500/10 border border-amber-500/20 text-amber-300 rounded-xl p-3 text-[11px] leading-relaxed font-medium">
+                <span class="font-black text-amber-400"><i class="fa-solid fa-triangle-exclamation"></i> まだ注文は完了していません。</span><br>
+                自動生成された下のコードをコピーして、公式Discordの注文チャンネルへ貼り付けてください。
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="order-string-input" readonly value="カートが空です" 
+                       class="bg-white/5 border border-white/10 rounded-xl px-3 h-11 text-[11px] font-mono grow text-gray-300 focus:outline-hidden select-all">
+                <button onclick="copyOrderString()" class="bg-white text-gray-900 px-4 h-11 rounded-xl text-xs font-black hover:bg-gray-100 cursor-pointer shrink-0">
+                    コピー
+                </button>
+            </div>
+
+            <a href="https://discord.gg/xbWMtzUbZB" target="_blank" class="w-full bg-[#5865F2] hover:bg-[#4752C4] text-white font-black h-12 rounded-xl flex items-center justify-center gap-1.5 transition-all shadow-lg text-xs">
+                <i class="fa-brands fa-discord text-base"></i> Discordを開いて注文する
+            </a>
+        </div>
+    </main>
+
+    <script>
+        let cart = [];
+        const DEFAULT_SHIPPING_FEE = 500; // 基本送料（500円）
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
+            toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold transition-all duration-300 opacity-0 translate-y-2 pointer-events-auto`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
+            setTimeout(() => { toast.classList.add('opacity-0', 'translate-y-2'); setTimeout(() => toast.remove(), 300); }, 3000);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { loadCart(); });
+
+        function loadCart() {
+            try { cart = JSON.parse(localStorage.getItem('topland_cart')) || []; } catch(e) { cart = []; }
+            renderCart();
+        }
+
+        // 価格文字列（"¥4,500" や "4500"）を純粋な数値に変換する関数
+        function parsePrice(priceStr) {
+            if (!priceStr) return 0;
+            const num = parseInt(String(priceStr).replace(/[^\d]/g, ''), 10);
+            return isNaN(num) ? 0 : num;
+        }
+
+        function renderCart() {
+            const container = document.getElementById('cart-list');
+            container.innerHTML = '';
+
+            if (cart.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-16 bg-white rounded-2xl border border-gray-100 text-gray-400 text-xs shadow-2xs">
+                        <i class="fa-solid fa-basket-shopping text-2xl mb-2 block"></i>カートの中身は空っぽです。
+                    </div>`;
+                document.getElementById('order-string-input').value = "カートが空です";
+                document.getElementById('subtotal-price').innerText = "¥0";
+                document.getElementById('shipping-fee').innerText = "¥0";
+                document.getElementById('total-price').innerText = "¥0";
+                document.getElementById('shipping-status-text').innerHTML = `<span class="text-gray-400">カートに商品がありません</span>`;
+                document.getElementById('shipping-progress-bar').style.width = '0%';
+                return;
+            }
+
+            let subtotal = 0;
+            let orderTokens = [];
+
+            cart.forEach((item, index) => {
+                const itemPrice = parsePrice(item.product.price);
+                const itemSubtotal = itemPrice * item.qty;
+                subtotal += itemSubtotal;
+
+                const div = document.createElement('div');
+                div.className = "flex items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100 shadow-2xs";
+                div.innerHTML = `
+                    <img src="${item.product.images[0] || 'https://placehold.co/400?text=No+Image'}" class="w-14 h-14 object-contain bg-gray-50 rounded-xl border border-gray-100 shrink-0">
+                    <div class="grow min-w-0">
+                        <h4 class="text-xs font-bold text-gray-900 truncate">${item.product.name}</h4>
+                        <div class="flex items-center justify-between mt-1.5">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-[9px] font-black bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded">サイズ: ${item.size}</span>
+                                <div class="flex items-center border border-gray-200 rounded-lg bg-white h-6 overflow-hidden">
+                                    <button onclick="changeQty(${index}, -1)" class="w-5 h-full text-xs font-bold text-gray-500 hover:bg-gray-50">-</button>
+                                    <span class="px-2 text-xs font-black text-gray-800 min-w-[16px] text-center">${item.qty}</span>
+                                    <button onclick="changeQty(${index}, 1)" class="w-5 h-full text-xs font-bold text-gray-500 hover:bg-gray-50">+</button>
+                                </div>
+                            </div>
+                            <span class="text-sm text-amber-600 font-black tracking-tight">${item.product.price}</span>
+                        </div>
+                    </div>
+                    <button onclick="removeItem(${index})" class="text-gray-300 hover:text-rose-500 w-8 h-8 flex items-center justify-center shrink-0"><i class="fa-solid fa-trash-can text-xs"></i></button>
+                `;
+                container.appendChild(div);
+                orderTokens.push(`[${item.product.id}]_${item.size}x${item.qty}`);
+            });
+
+            // 送料計算ルール（1万円以上で無料）
+            const isFreeShipping = subtotal >= 10000;
+            const shippingFee = isFreeShipping ? 0 : DEFAULT_SHIPPING_FEE;
+            const total = subtotal + shippingFee;
+
+            // 各種金額のUI反映
+            document.getElementById('subtotal-price').innerText = `¥${subtotal.toLocaleString()}`;
+            document.getElementById('shipping-fee').innerText = isFreeShipping ? "無料" : `¥${shippingFee.toLocaleString()}`;
+            document.getElementById('total-price').innerText = `¥${total.toLocaleString()}`;
+
+            // 送料無料メーターの計算と表示制御
+            const progressPercent = Math.min((subtotal / 10000) * 100, 100);
+            const progressBar = document.getElementById('shipping-progress-bar');
+            progressBar.style.width = `${progressPercent}%`;
+
+            const statusText = document.getElementById('shipping-status-text');
+            if (isFreeShipping) {
+                statusText.innerHTML = `<span class="text-emerald-600 font-black"><i class="fa-solid fa-circle-check"></i> 送料無料が適用されています！</span>`;
+                progressBar.className = "bg-emerald-500 h-full w-0 transition-all duration-500";
+            } else {
+                const lack = 10000 - subtotal;
+                statusText.innerHTML = `あと <span class="text-amber-600 font-black">¥${lack.toLocaleString()}</span> の注文で<span class="text-emerald-600 font-black">送料無料</span>`;
+                progressBar.className = "bg-amber-500 h-full w-0 transition-all duration-500";
+            }
+
+            // 暗号シリアルコード
+            document.getElementById('order-string-input').value = `ORDER//${orderTokens.join('//')}`;
+        }
+
+        function changeQty(index, val) {
+            let nextVal = cart[index].qty + val;
+            if (nextVal >= 1) { cart[index].qty = nextVal; } else { cart.splice(index, 1); }
+            saveCart(); renderCart();
+        }
+
+        function removeItem(index) {
+            cart.splice(index, 1); saveCart(); renderCart();
+            showToast('カートから削除しました', 'error');
+        }
+
+        function saveCart() { localStorage.setItem('topland_cart', JSON.stringify(cart)); }
+
+        function copyOrderString() {
+            const input = document.getElementById('order-string-input');
+            if (cart.length === 0) return;
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(input.value).then(() => showToast('注文コードをコピーしました！')).catch(() => fallbackCopy(input));
+            } else { fallbackCopy(input); }
+        }
+
+        function fallbackCopy(input) {
+            input.select(); input.setSelectionRange(0, 99999); document.execCommand('copy');
+            showToast('注文コードをコピーしました！');
+        }
+    </script>
+</body>
+</html>
