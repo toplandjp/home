@@ -14,6 +14,17 @@
         input[type="number"]::-webkit-outer-spin-button,
         input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
         input[type="number"] { -moz-appearance: textfield; }
+        
+        /* スマホ用ボトムシートのスムーズなアニメーション */
+        @media (max-width: 767px) {
+            .modal-animate {
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .modal-active .modal-animate {
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body class="bg-[#f8f9fa] text-gray-900 antialiased font-sans selection:bg-blue-500 selection:text-white">
@@ -100,64 +111,59 @@
         </main>
     </div>
 
-    <div id="product-modal" class="fixed inset-0 bg-black/70 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs hidden" onclick="closeModal()">
-        <div class="bg-white w-full md:w-full md:max-w-4xl rounded-t-3xl md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[95vh] md:max-h-[85vh]" onclick="event.stopPropagation()">
+    <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeModal()">
+        <div class="modal-animate bg-white w-full md:w-full md:max-w-4xl rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[88vh] md:max-h-[85vh]" onclick="event.stopPropagation()">
             
-            <div class="w-full md:w-1/2 bg-gray-100 flex flex-col justify-center p-0 md:p-4 border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
-                <div class="w-full h-[30vh] md:h-auto md:aspect-square overflow-hidden bg-white relative group flex items-center justify-center">
+            <div class="w-full md:w-1/2 bg-gray-50 flex flex-col justify-center p-0 md:p-4 border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
+                <div class="w-full h-[26vh] md:h-auto md:aspect-square overflow-hidden bg-white relative group flex items-center justify-center shadow-2xs">
                     <img id="modal-main-image" src="" class="w-full h-full object-contain transition-all duration-300">
                     
-                    <button onclick="prevImage()" class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
+                    <button onclick="prevImage()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
                         <i class="fa-solid fa-chevron-left text-xs"></i>
                     </button>
-                    <button onclick="nextImage()" class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/70 text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
+                    <button onclick="nextImage()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
                         <i class="fa-solid fa-chevron-right text-xs"></i>
                     </button>
                 </div>
-                <div id="modal-thumbnails" class="flex gap-1.5 mt-1 mb-1 md:my-0 px-2 md:px-0 overflow-x-auto category-scroll py-0.5 justify-center bg-white md:bg-transparent"></div>
+                <div id="modal-thumbnails" class="flex gap-1.5 py-1.5 px-3 md:px-0 overflow-x-auto category-scroll justify-center bg-white border-b border-gray-100 md:border-b-0"></div>
             </div>
             
-            <div class="w-full md:w-1/2 p-3.5 md:p-6 flex flex-col justify-between overflow-y-auto bg-white pb-24 md:pb-6">
-                <div class="space-y-2">
-                    <div class="flex items-center justify-between gap-2 flex-wrap">
-                        <div class="flex items-center gap-1.5">
-                            <span id="modal-category" class="text-[9px] font-black tracking-widest text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">BRAND</span>
-                            <span id="modal-status" class="hidden text-[9px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-1.5 py-0.5 rounded-md"></span>
+            <div class="w-full md:w-1/2 p-4 md:p-6 flex flex-col justify-between overflow-y-auto bg-white pb-28 md:pb-6">
+                <div class="space-y-4">
+                    
+                    <div class="space-y-1">
+                        <h2 id="modal-name" class="text-lg md:text-2xl font-black text-gray-900 leading-snug tracking-tight"></h2>
+                        <div id="modal-price" class="text-2xl md:text-3xl font-black text-amber-600 tracking-tight flex items-baseline pt-0.5">
+                            <span id="price-text">¥0</span>
                         </div>
-                        <div id="modal-id" class="text-[9px] text-gray-400 font-mono">ID: -----</div>
                     </div>
                     
-                    <div class="mt-0">
-                        <h2 id="modal-name" class="text-sm md:text-xl font-black text-gray-900 leading-tight">商品名</h2>
-                        <div id="modal-price" class="text-base md:text-xl font-black text-amber-600 mt-0.5">¥0</div>
+                    <div class="bg-slate-50 p-3.5 rounded-xl border-l-4 border-gray-900 shadow-3xs">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Description / 商品説明</span>
+                        <p id="modal-description" class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap font-medium tracking-wide"></p>
                     </div>
                     
-                    <div class="bg-gray-50/70 p-2.5 rounded-xl border border-gray-100/80 mt-0">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block mb-0.5">商品説明</span>
-                        <p id="modal-description" class="text-xs text-gray-600 leading-relaxed whitespace-pre-wrap font-medium"></p>
-                    </div>
-                    
-                    <div class="pt-0.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">サイズ</span>
-                        <div id="modal-size-container" class="flex flex-wrap gap-1 mt-0.5"></div>
+                    <div class="space-y-1.5">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Select Size / サイズ</span>
+                        <div id="modal-size-container" class="flex flex-wrap gap-2"></div>
                     </div>
 
-                    <div class="pt-0.5">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider block">数量</span>
-                        <div class="flex items-center gap-1 mt-0.5">
-                            <button onclick="changeModalQty(-1)" class="w-8 h-8 border border-gray-200 rounded-lg flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-100 cursor-pointer text-xs">-</button>
-                            <input type="number" id="modal-qty" value="1" min="1" readonly class="w-9 h-8 border border-gray-200 rounded-lg text-center font-bold text-xs focus:outline-hidden">
-                            <button onclick="changeModalQty(1)" class="w-8 h-8 border border-gray-200 rounded-lg flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-100 cursor-pointer text-xs">+</button>
+                    <div class="space-y-1.5">
+                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Quantity / 数量</span>
+                        <div class="flex items-center gap-1">
+                            <button onclick="changeModalQty(-1)" class="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-base">-</button>
+                            <input type="number" id="modal-qty" value="1" min="1" readonly class="w-12 h-10 border border-gray-200 rounded-xl text-center font-black text-sm bg-white focus:outline-hidden">
+                            <button onclick="changeModalQty(1)" class="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-base">+</button>
                         </div>
                     </div>
                 </div>
                 
-                <div class="fixed md:relative bottom-0 left-0 right-0 bg-white p-3 md:p-0 border-t md:border-t-0 border-gray-100 flex gap-2 z-20">
-                    <button onclick="closeModal()" class="w-1/4 bg-gray-800 hover:bg-gray-700 text-white font-bold h-10 rounded-xl text-xs cursor-pointer md:hidden shadow-md flex items-center justify-center gap-1">
-                        <i class="fa-solid fa-angle-left"></i> 戻る
+                <div class="fixed md:relative bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 md:p-0 border-t md:border-t-0 border-gray-100 flex gap-2 z-20">
+                    <button onclick="closeModal()" class="w-1/4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-black h-12 rounded-xl text-xs cursor-pointer md:hidden transition-all flex items-center justify-center gap-1 active:scale-95">
+                        閉じる
                     </button>
-                    <button id="modal-cart-btn" onclick="addToCart()" class="w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-bold h-10 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs md:text-sm shadow-md">
-                        <i class="fa-solid fa-plus text-xs"></i> カートに追加
+                    <button id="modal-cart-btn" onclick="addToCart()" class="w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]">
+                        <i class="fa-solid fa-plus text-xs"></i> カートに追加する
                     </button>
                 </div>
             </div>
@@ -325,7 +331,7 @@
                 noResults.classList.add('hidden');
                 filtered.forEach(product => {
                     const card = document.createElement('div');
-                    card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative";
+                    card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative shadow-2xs hover:shadow-xs";
                     card.onclick = () => openModal(product);
                     
                     const firstImage = product.images[0] || 'https://placehold.co/400?text=No+Image';
@@ -347,8 +353,8 @@
                             </div>
                         </div>
                         <div class="p-3 pt-0 flex items-end justify-between">
-                            <span class="text-xs font-black text-gray-950">${product.price}</span>
-                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded">詳細</span>
+                            <span class="text-sm md:text-base font-black text-gray-950 tracking-tight">${product.price}</span>
+                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">詳細</span>
                         </div>
                     `;
                     grid.appendChild(card);
@@ -422,26 +428,25 @@
 
             updateModalImage();
             
-            document.getElementById('modal-category').innerText = product.category;
-            
-            const modalStatus = document.getElementById('modal-status');
             const cartBtn = document.getElementById('modal-cart-btn');
 
             if (product.status === '生産中・準備中') {
-                modalStatus.innerText = "⚠️ 生産中・準備中";
-                modalStatus.classList.remove('hidden');
-                
-                cartBtn.innerHTML = `<i class="fa-solid fa-ban text-xs"></i> ただいま準備中です`;
-                cartBtn.className = "w-3/4 md:w-full bg-gray-300 text-gray-500 font-bold h-10 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed text-xs shadow-none pointer-events-none";
+                cartBtn.innerHTML = `ただいま準備中です`;
+                cartBtn.className = "w-3/4 md:w-full bg-gray-200 text-gray-400 font-bold h-12 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed text-xs shadow-none pointer-events-none";
             } else {
-                modalStatus.classList.add('hidden');
-                cartBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加`;
-                cartBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-bold h-10 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-xs md:text-sm shadow-md";
+                cartBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加する`;
+                cartBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]";
             }
 
-            document.getElementById('modal-name').innerText = product.name;
-            document.getElementById('modal-id').innerText = `ID: ${product.id}`;
-            document.getElementById('modal-price').innerText = product.price;
+            // 【スマホ改善】カテゴリ名・ステータスを商品名の先頭にインライン融合させ、IDは完全撤去
+            let nameHtml = `<span class="text-[10px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase inline-flex items-center mr-1.5 select-none align-middle">${product.category}</span>`;
+            if (product.status === '生産中・準備中') {
+                nameHtml += `<span class="text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-flex items-center mr-1.5 select-none align-middle">⚠️準備中</span>`;
+            }
+            nameHtml += `<span class="align-middle text-gray-900 font-black">${product.name}</span>`;
+            document.getElementById('modal-name').innerHTML = nameHtml;
+
+            document.getElementById('price-text').innerText = product.price;
             document.getElementById('modal-description').innerText = product.description;
             
             const thumbContainer = document.getElementById('modal-thumbnails');
@@ -449,7 +454,7 @@
             product.images.forEach((imgUrl, idx) => {
                 const img = document.createElement('img');
                 img.src = imgUrl;
-                img.className = `w-12 h-12 object-contain bg-white rounded-lg border-2 shrink-0 transition-all ${idx === 0 ? 'border-gray-900 opacity-100' : 'border-transparent opacity-50'}`;
+                img.className = `w-11 h-11 object-contain bg-white rounded-lg border-2 shrink-0 transition-all ${idx === 0 ? 'border-gray-900 opacity-100 scale-105' : 'border-gray-100 opacity-60'}`;
                 img.onclick = () => {
                     currentImageIdx = idx;
                     updateModalImage();
@@ -460,23 +465,31 @@
             const sizeContainer = document.getElementById('modal-size-container');
             sizeContainer.innerHTML = '';
             if (product.sizes.length === 0) {
-                sizeContainer.innerHTML = `<span class="text-xs text-gray-400">フリーサイズ</span>`;
+                sizeContainer.innerHTML = `<span class="text-xs font-bold text-gray-500 bg-gray-100 px-3 py-2 rounded-xl">フリーサイズ (FREE)</span>`;
                 selectedSize = 'FREE';
             } else {
                 product.sizes.forEach(size => {
                     const btn = document.createElement('button');
                     btn.innerText = size;
-                    btn.className = "min-w-[40px] h-8 px-2.5 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center";
+                    btn.className = "min-w-[44px] h-10 px-3 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800";
                     btn.onclick = () => {
-                        sizeContainer.querySelectorAll('.size-btn').forEach(b => b.className = "min-w-[40px] h-8 px-2.5 border border-gray-200 text-xs font-bold rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center");
-                        btn.className = "min-w-[40px] h-8 px-2.5 bg-gray-900 border border-gray-900 text-white text-xs font-bold rounded-xl cursor-pointer size-btn shadow-xs flex items-center justify-center";
+                        sizeContainer.querySelectorAll('.size-btn').forEach(b => b.className = "min-w-[44px] h-10 px-3 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800");
+                        btn.className = "min-w-[44px] h-10 px-3 bg-gray-900 border border-gray-900 text-white text-xs font-black rounded-xl cursor-pointer size-btn shadow-md flex items-center justify-center scale-102";
                         selectedSize = size;
                     };
                     sizeContainer.appendChild(btn);
                 });
             }
 
-            document.getElementById('product-modal').classList.remove('hidden');
+            // ボトムシートのなめらかな表示アニメーション
+            const modalEl = document.getElementById('product-modal');
+            modalEl.classList.remove('hidden');
+            setTimeout(() => {
+                modalEl.classList.add('modal-active');
+                modalEl.classList.remove('opacity-0');
+                modalEl.classList.add('opacity-100');
+                modalEl.style.pointerEvents = 'auto';
+            }, 10);
             document.body.style.overflow = 'hidden';
         }
 
@@ -490,9 +503,9 @@
             const thumbs = document.getElementById('modal-thumbnails').querySelectorAll('img');
             thumbs.forEach((t, idx) => {
                 if (idx === currentImageIdx) {
-                    t.className = "w-12 h-12 object-contain bg-white rounded-lg border-2 border-gray-900 opacity-100 shrink-0 transition-all";
+                    t.className = "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-900 opacity-100 scale-105 shrink-0 transition-all shadow-3xs";
                 } else {
-                    t.className = "w-12 h-12 object-contain bg-white rounded-lg border-2 border-transparent opacity-50 shrink-0 transition-all";
+                    t.className = "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-100 opacity-50 shrink-0 transition-all";
                 }
             });
         }
@@ -529,7 +542,15 @@
         }
 
         function closeModal() {
-            document.getElementById('product-modal').classList.add('hidden');
+            const modalEl = document.getElementById('product-modal');
+            modalEl.classList.remove('modal-active');
+            modalEl.classList.remove('opacity-100');
+            modalEl.classList.add('opacity-0');
+            modalEl.style.pointerEvents = 'none';
+            
+            setTimeout(() => {
+                modalEl.classList.add('hidden');
+            }, 350);
             document.body.style.overflow = '';
         }
 
