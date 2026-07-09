@@ -19,7 +19,7 @@
         @media (max-width: 767px) {
             .modal-animate {
                 transform: translateY(100%);
-                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
             }
             .modal-active .modal-animate {
                 transform: translateY(0);
@@ -111,62 +111,76 @@
         </main>
     </div>
 
-    <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs transition-opacity duration-300 opacity-0 pointer-events-none" onclick="closeModal()">
-        <div class="modal-animate bg-white w-full md:w-full md:max-w-4xl rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl flex flex-col md:flex-row max-h-[88vh] md:max-h-[85vh]" onclick="event.stopPropagation()">
+    <div id="product-modal" class="fixed inset-0 bg-black/60 z-50 flex items-end md:items-center justify-center p-0 md:p-4 backdrop-blur-xs transition-opacity duration-300 opacity-0 pointer-events-none hidden" onclick="closeModal()">
+        <div class="modal-animate bg-white w-full md:max-w-4xl rounded-t-[2rem] md:rounded-3xl overflow-hidden shadow-2xl flex flex-col h-[85vh] md:h-auto md:max-h-[85vh] relative" onclick="event.stopPropagation()">
             
-            <div class="w-full md:w-1/2 bg-gray-50 flex flex-col justify-center p-0 md:p-4 border-b md:border-b-0 md:border-r border-gray-100 shrink-0 relative">
-                <div class="w-full h-[26vh] md:h-auto md:aspect-square overflow-hidden bg-white relative group flex items-center justify-center shadow-2xs">
-                    <img id="modal-main-image" src="" class="w-full h-full object-contain transition-all duration-300">
+            <div id="modal-scroll-body" class="grow overflow-y-auto p-4 md:p-6 pb-26 md:pb-24">
+                
+                <div id="modal-step-1" class="flex flex-col md:flex-row gap-4 md:gap-6">
+                    <div class="w-full md:w-1/2 flex flex-col shrink-0 relative">
+                        <div class="w-full aspect-square max-h-[32vh] md:max-h-none overflow-hidden bg-gray-50 rounded-2xl relative flex items-center justify-center p-2 border border-gray-100 shadow-2xs">
+                            <img id="modal-main-image" src="" class="w-full h-full object-contain transition-all duration-300">
+                            <button onclick="prevImage()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10"><i class="fa-solid fa-chevron-left text-xs"></i></button>
+                            <button onclick="nextImage()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10"><i class="fa-solid fa-chevron-right text-xs"></i></button>
+                        </div>
+                        <div id="modal-thumbnails" class="flex gap-1.5 mt-2 overflow-x-auto category-scroll py-1 justify-center"></div>
+                    </div>
                     
-                    <button onclick="prevImage()" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
-                        <i class="fa-solid fa-chevron-left text-xs"></i>
-                    </button>
-                    <button onclick="nextImage()" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/30 hover:bg-black/60 backdrop-blur-xs text-white w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-pointer z-10">
-                        <i class="fa-solid fa-chevron-right text-xs"></i>
-                    </button>
-                </div>
-                <div id="modal-thumbnails" class="flex gap-1.5 py-1.5 px-3 md:px-0 overflow-x-auto category-scroll justify-center bg-white border-b border-gray-100 md:border-b-0"></div>
-            </div>
-            
-            <div class="w-full md:w-1/2 p-4 md:p-6 flex flex-col justify-between overflow-y-auto bg-white pb-28 md:pb-6">
-                <div class="space-y-4">
-                    
-                    <div class="space-y-1">
-                        <h2 id="modal-name" class="text-lg md:text-2xl font-black text-gray-900 leading-snug tracking-tight"></h2>
-                        <div id="modal-price" class="text-2xl md:text-3xl font-black text-amber-600 tracking-tight flex items-baseline pt-0.5">
-                            <span id="price-text">¥0</span>
+                    <div class="w-full md:w-1/2 flex flex-col justify-between space-y-4">
+                        <div class="space-y-3.5">
+                            <h2 id="modal-name" class="text-xl md:text-2xl font-black text-gray-900 leading-snug tracking-tight"></h2>
+                            
+                            <div class="text-2xl md:text-3xl font-black text-amber-600 tracking-tight flex items-baseline border-b border-gray-50 pb-2">
+                                <span id="price-text">¥0</span>
+                            </div>
+                            
+                            <div class="bg-slate-50 p-4 rounded-2xl border-l-4 border-gray-900 shadow-3xs">
+                                <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Description / 商品説明</span>
+                                <p id="modal-description" class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap font-medium tracking-wide"></p>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div id="modal-step-2" class="hidden max-w-md mx-auto py-2 md:py-6 space-y-6">
+                    <button onclick="goToStep(1)" class="text-xs font-black text-gray-400 hover:text-gray-900 flex items-center gap-1.5 cursor-pointer bg-gray-50 px-3 py-1.5 rounded-lg transition-all">
+                        <i class="fa-solid fa-chevron-left text-[10px]"></i> 商品詳細に戻る
+                    </button>
                     
-                    <div class="bg-slate-50 p-3.5 rounded-xl border-l-4 border-gray-900 shadow-3xs">
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1">Description / 商品説明</span>
-                        <p id="modal-description" class="text-sm md:text-base text-gray-700 leading-relaxed whitespace-pre-wrap font-medium tracking-wide"></p>
+                    <div class="border-b border-gray-100 pb-4 flex items-center gap-3">
+                        <img id="modal-step2-mini-img" src="" class="w-12 h-12 object-contain bg-gray-50 rounded-lg border border-gray-100">
+                        <div class="min-w-0">
+                            <h3 id="modal-step2-name" class="text-sm font-black text-gray-900 truncate">商品名</h3>
+                            <div id="modal-step2-price" class="text-base font-black text-amber-600 mt-0.5">¥0</div>
+                        </div>
                     </div>
-                    
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Select Size / サイズ</span>
+
+                    <div class="space-y-2">
+                        <span class="text-xs font-black text-gray-500 uppercase tracking-widest block"><i class="fa-solid fa-ruler mr-1 text-gray-400"></i> サイズを選択</span>
                         <div id="modal-size-container" class="flex flex-wrap gap-2"></div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Quantity / 数量</span>
+                    <div class="space-y-2">
+                        <span class="text-xs font-black text-gray-500 uppercase tracking-widest block"><i class="fa-solid fa-layer-group mr-1 text-gray-400"></i> 数量を選択</span>
                         <div class="flex items-center gap-1">
-                            <button onclick="changeModalQty(-1)" class="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-base">-</button>
-                            <input type="number" id="modal-qty" value="1" min="1" readonly class="w-12 h-10 border border-gray-200 rounded-xl text-center font-black text-sm bg-white focus:outline-hidden">
-                            <button onclick="changeModalQty(1)" class="w-10 h-10 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-base">+</button>
+                            <button onclick="changeModalQty(-1)" class="w-11 h-11 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-lg">-</button>
+                            <input type="number" id="modal-qty" value="1" min="1" readonly class="w-14 h-11 border border-gray-200 rounded-xl text-center font-black text-base bg-white focus:outline-hidden">
+                            <button onclick="changeModalQty(1)" class="w-11 h-11 border border-gray-200 rounded-xl flex items-center justify-center font-bold text-gray-600 bg-gray-50 active:bg-gray-200 transition-colors cursor-pointer text-lg">+</button>
                         </div>
                     </div>
                 </div>
-                
-                <div class="fixed md:relative bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-3 md:p-0 border-t md:border-t-0 border-gray-100 flex gap-2 z-20">
-                    <button onclick="closeModal()" class="w-1/4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-black h-12 rounded-xl text-xs cursor-pointer md:hidden transition-all flex items-center justify-center gap-1 active:scale-95">
-                        閉じる
-                    </button>
-                    <button id="modal-cart-btn" onclick="addToCart()" class="w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]">
-                        <i class="fa-solid fa-plus text-xs"></i> カートに追加する
-                    </button>
-                </div>
+
             </div>
+            
+            <div class="absolute bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md p-4 border-t border-gray-100 flex gap-2 z-20">
+                <button onclick="closeModal()" class="w-1/4 bg-gray-100 hover:bg-gray-200 text-gray-800 font-black h-12 rounded-xl text-xs cursor-pointer md:hidden transition-all flex items-center justify-center active:scale-95">
+                    閉じる
+                </button>
+                <button id="modal-primary-btn" onclick="handlePrimaryAction()" class="w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]">
+                    サイズ・数量を選ぶ <i class="fa-solid fa-chevron-right text-[10px]"></i>
+                </button>
+            </div>
+            
         </div>
     </div>
 
@@ -211,23 +225,19 @@
         let activeProduct = null;
         let selectedSize = '';
         let currentImageIdx = 0;
+        let currentStep = 1; // 1: 詳細, 2: サイズ数量選択
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            
             const bgClass = type === 'success' ? 'bg-emerald-600' : 'bg-rose-600';
             const icon = type === 'success' ? '<i class="fa-solid fa-circle-check"></i>' : '<i class="fa-solid fa-circle-exclamation"></i>';
 
             toast.className = `${bgClass} text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-2 text-xs font-bold transition-all duration-300 opacity-0 translate-y-2 pointer-events-auto`;
             toast.innerHTML = `${icon} <span>${message}</span>`;
-            
             container.appendChild(toast);
 
-            setTimeout(() => {
-                toast.classList.remove('opacity-0', 'translate-y-2');
-            }, 10);
-
+            setTimeout(() => toast.classList.remove('opacity-0', 'translate-y-2'), 10);
             setTimeout(() => {
                 toast.classList.add('opacity-0', 'translate-y-2');
                 setTimeout(() => toast.remove(), 300);
@@ -236,25 +246,18 @@
 
         function cleanText(str) {
             if (!str) return '';
-            return String(str).toLowerCase()
-                .replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0))
-                .trim();
+            return String(str).toLowerCase().replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)).trim();
         }
 
         window.addEventListener('DOMContentLoaded', () => {
             const savedCart = localStorage.getItem('topland_cart');
-            if (savedCart) {
-                try { cart = JSON.parse(savedCart); } catch(e) { cart = []; }
-            }
+            if (savedCart) { try { cart = JSON.parse(savedCart); } catch(e) { cart = []; } }
 
             const script = document.createElement('script');
             script.src = url;
             document.body.appendChild(script);
 
-            const searchHandler = (e) => {
-                searchQuery = e.target.value;
-                renderProducts();
-            };
+            const searchHandler = (e) => { searchQuery = e.target.value; renderProducts(); };
             document.getElementById('search-input').addEventListener('input', searchHandler);
             document.getElementById('search-input-mobile').addEventListener('input', searchHandler);
         });
@@ -263,7 +266,6 @@
             try {
                 const rows = data.table.rows;
                 products = [];
-
                 rows.forEach(row => {
                     const id = row.c[0] ? String(row.c[0].v).trim() : 'N/A';
                     const name = row.c[1] ? row.c[1].v : '';
@@ -277,30 +279,13 @@
                     const images = imageStr.split(',').map(img => img.trim()).filter(img => img);
                     const sizes = sizesStr ? sizesStr.split(',').map(s => s.trim()).filter(s => s) : [];
 
-                    if (name && name !== 'name') {
-                        if (status !== '非公開') {
-                            products.push({ id, name, category, images, price, description, sizes, status });
-                        }
+                    if (name && name !== 'name' && status !== '非公開') {
+                        products.push({ id, name, category, images, price, description, sizes, status });
                     }
                 });
-
-                let updatedCart = [];
-                cart.forEach(cartItem => {
-                    const currentDbProduct = products.find(p => p.id === cartItem.product.id);
-                    if (currentDbProduct) {
-                        const isSizeValid = currentDbProduct.sizes.length === 0 ? (cartItem.size === 'FREE') : currentDbProduct.sizes.includes(cartItem.size);
-                        if (isSizeValid) {
-                            cartItem.product = currentDbProduct;
-                            updatedCart.push(cartItem);
-                        }
-                    }
-                });
-                cart = updatedCart;
-                saveCartToStorage();
 
                 document.getElementById('loading').classList.add('hidden');
                 document.getElementById('product-grid').classList.remove('hidden');
-
                 initCategories();
                 renderProducts();
                 updateCart(); 
@@ -314,61 +299,48 @@
             const noResults = document.getElementById('no-results');
             grid.innerHTML = '';
 
-            const cleanQuery = cleanText(searchQuery);
-            const words = cleanQuery.split(/\s+/).filter(w => w);
-
+            const words = cleanText(searchQuery).split(/\s+/).filter(w => w);
             const filtered = products.filter(product => {
                 const matchesCategory = (currentCategory === 'すべて' || product.category === currentCategory);
                 if (!matchesCategory) return false;
-
                 const targetText = cleanText(`${product.name} ${product.category} ${product.id} ${product.description}`);
                 return words.every(word => targetText.includes(word));
             });
 
-            if (filtered.length === 0) {
-                noResults.classList.remove('hidden');
-            } else {
-                noResults.classList.add('hidden');
-                filtered.forEach(product => {
-                    const card = document.createElement('div');
-                    card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative shadow-2xs hover:shadow-xs";
-                    card.onclick = () => openModal(product);
-                    
-                    const firstImage = product.images[0] || 'https://placehold.co/400?text=No+Image';
+            if (filtered.length === 0) { noResults.classList.remove('hidden'); return; }
+            noResults.classList.add('hidden');
 
-                    let statusBadge = '';
-                    if (product.status === '生産中・準備中') {
-                        statusBadge = `<span class="absolute top-2 left-2 z-10 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-md border border-amber-400/20"><i class="fa-solid fa-hammer mr-1 text-[9px]"></i>準備中</span>`;
-                    }
+            filtered.forEach(product => {
+                const card = document.createElement('div');
+                card.className = "bg-white rounded-xl overflow-hidden border border-gray-100 active:scale-98 transition-all duration-200 flex flex-col justify-between cursor-pointer group relative shadow-2xs hover:shadow-xs";
+                card.onclick = () => openModal(product);
+                
+                let statusBadge = product.status === '生産中・準備中' ? `<span class="absolute top-2 left-2 z-10 bg-amber-500 text-white text-[10px] font-black px-2.5 py-1 rounded-lg shadow-md border border-amber-400/20">準備中</span>` : '';
 
-                    card.innerHTML = `
-                        <div>
-                            <div class="aspect-square bg-gray-50 overflow-hidden relative flex items-center justify-center p-1">
-                                ${statusBadge}
-                                <img src="${firstImage}" class="w-full h-full object-contain">
-                            </div>
-                            <div class="p-3">
-                                <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">${product.category}</span>
-                                <h2 class="text-xs font-bold text-gray-900 mt-0.5 line-clamp-2 min-h-[2.2rem] leading-tight">${product.name}</h2>
-                            </div>
+                card.innerHTML = `
+                    <div>
+                        <div class="aspect-square bg-gray-50 overflow-hidden relative flex items-center justify-center p-1">
+                            ${statusBadge}
+                            <img src="${product.images[0] || 'https://placehold.co/400?text=No+Image'}" class="w-full h-full object-contain">
                         </div>
-                        <div class="p-3 pt-0 flex items-end justify-between">
-                            <span class="text-sm md:text-base font-black text-gray-950 tracking-tight">${product.price}</span>
-                            <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">詳細</span>
+                        <div class="p-3">
+                            <span class="text-[8px] font-black text-gray-400 uppercase tracking-widest block">${product.category}</span>
+                            <h2 class="text-xs font-bold text-gray-900 mt-0.5 line-clamp-2 min-h-[2.2rem] leading-tight">${product.name}</h2>
                         </div>
-                    `;
-                    grid.appendChild(card);
-                });
-            }
+                    </div>
+                    <div class="p-3 pt-0 flex items-end justify-between">
+                        <span class="text-base md:text-lg font-black text-amber-600 tracking-tight">${product.price}</span>
+                        <span class="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">詳細</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
         }
 
         function initCategories() {
             const pcList = document.getElementById('pc-category-list');
             const mobileList = document.getElementById('mobile-category-list');
-            
-            pcList.innerHTML = '';
-            mobileList.innerHTML = '';
-
+            pcList.innerHTML = ''; mobileList.innerHTML = '';
             const categories = [...new Set(products.map(p => p.category))].filter(Boolean);
             
             categories.forEach(cat => {
@@ -390,33 +362,21 @@
             const dropdown = document.getElementById('mobile-category-dropdown');
             const arrow = document.getElementById('mobile-menu-arrow');
             const isHidden = dropdown.classList.contains('hidden');
-            
-            if (isHidden) {
-                dropdown.classList.remove('hidden');
-                arrow.style.transform = 'rotate(180deg)';
-            } else {
-                dropdown.classList.add('hidden');
-                arrow.style.transform = 'rotate(0deg)';
-            }
+            dropdown.classList.toggle('hidden');
+            arrow.style.transform = isHidden ? 'rotate(180deg)' : 'rotate(0deg)';
         }
 
         function filterCategory(category, element, isMobile) {
             currentCategory = category;
-
             if (isMobile) {
                 document.getElementById('mobile-current-category').innerText = category;
-                document.querySelectorAll('.mobile-cat-btn').forEach(btn => {
-                    btn.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-medium text-gray-600 bg-gray-50 mobile-cat-btn flex items-center gap-2";
-                });
+                document.querySelectorAll('.mobile-cat-btn').forEach(btn => btn.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-medium text-gray-600 bg-gray-50 mobile-cat-btn flex items-center gap-2");
                 element.className = "w-full text-left px-3 h-9 rounded-lg text-xs font-bold bg-gray-900 text-white mobile-cat-btn flex items-center gap-2";
                 toggleMobileCategoryMenu();
             } else {
-                document.querySelectorAll('.pc-cat-btn').forEach(btn => {
-                    btn.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 pc-cat-btn transition-all cursor-pointer";
-                });
+                document.querySelectorAll('.pc-cat-btn').forEach(btn => btn.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-medium text-gray-600 bg-gray-100 pc-cat-btn transition-all cursor-pointer");
                 element.className = "w-full text-left flex items-center gap-1.5 px-3.5 h-9 rounded-xl text-xs font-bold bg-gray-900 text-white pc-cat-btn transition-all cursor-pointer";
             }
-
             renderProducts();
         }
 
@@ -427,21 +387,11 @@
             document.getElementById('modal-qty').value = 1;
 
             updateModalImage();
-            
-            const cartBtn = document.getElementById('modal-cart-btn');
 
+            // 【スマホ改善】不要な行を全削除し、商品名の文頭にブランドバッジを美しく完全融合
+            let nameHtml = `<span class="text-[10px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase inline-flex items-center mr-2 select-none align-middle">${product.category}</span>`;
             if (product.status === '生産中・準備中') {
-                cartBtn.innerHTML = `ただいま準備中です`;
-                cartBtn.className = "w-3/4 md:w-full bg-gray-200 text-gray-400 font-bold h-12 rounded-xl flex items-center justify-center gap-1.5 cursor-not-allowed text-xs shadow-none pointer-events-none";
-            } else {
-                cartBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加する`;
-                cartBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]";
-            }
-
-            // 【スマホ改善】カテゴリ名・ステータスを商品名の先頭にインライン融合させ、IDは完全撤去
-            let nameHtml = `<span class="text-[10px] font-black tracking-widest text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase inline-flex items-center mr-1.5 select-none align-middle">${product.category}</span>`;
-            if (product.status === '生産中・準備中') {
-                nameHtml += `<span class="text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-flex items-center mr-1.5 select-none align-middle">⚠️準備中</span>`;
+                nameHtml += `<span class="text-[10px] font-black tracking-wider text-amber-800 bg-amber-100 border border-amber-200 px-2 py-0.5 rounded-md inline-flex items-center mr-2 select-none align-middle">準備中</span>`;
             }
             nameHtml += `<span class="align-middle text-gray-900 font-black">${product.name}</span>`;
             document.getElementById('modal-name').innerHTML = nameHtml;
@@ -449,19 +399,23 @@
             document.getElementById('price-text').innerText = product.price;
             document.getElementById('modal-description').innerText = product.description;
             
+            // サムネイル生成
             const thumbContainer = document.getElementById('modal-thumbnails');
             thumbContainer.innerHTML = '';
             product.images.forEach((imgUrl, idx) => {
                 const img = document.createElement('img');
                 img.src = imgUrl;
                 img.className = `w-11 h-11 object-contain bg-white rounded-lg border-2 shrink-0 transition-all ${idx === 0 ? 'border-gray-900 opacity-100 scale-105' : 'border-gray-100 opacity-60'}`;
-                img.onclick = () => {
-                    currentImageIdx = idx;
-                    updateModalImage();
-                };
+                img.onclick = () => { currentImageIdx = idx; updateModalImage(); };
                 thumbContainer.appendChild(img);
             });
 
+            // STEP 2 用の情報同期
+            document.getElementById('modal-step2-mini-img').src = product.images[0] || 'https://placehold.co/400?text=No+Image';
+            document.getElementById('modal-step2-name').innerText = product.name;
+            document.getElementById('modal-step2-price').innerText = product.price;
+
+            // サイズコンテナの生成
             const sizeContainer = document.getElementById('modal-size-container');
             sizeContainer.innerHTML = '';
             if (product.sizes.length === 0) {
@@ -471,17 +425,19 @@
                 product.sizes.forEach(size => {
                     const btn = document.createElement('button');
                     btn.innerText = size;
-                    btn.className = "min-w-[44px] h-10 px-3 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800";
+                    btn.className = "min-w-[46px] h-11 px-3.5 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800";
                     btn.onclick = () => {
-                        sizeContainer.querySelectorAll('.size-btn').forEach(b => b.className = "min-w-[44px] h-10 px-3 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800");
-                        btn.className = "min-w-[44px] h-10 px-3 bg-gray-900 border border-gray-900 text-white text-xs font-black rounded-xl cursor-pointer size-btn shadow-md flex items-center justify-center scale-102";
+                        sizeContainer.querySelectorAll('.size-btn').forEach(b => b.className = "min-w-[46px] h-11 px-3.5 border border-gray-200 text-xs font-black rounded-xl hover:bg-gray-50 active:scale-95 cursor-pointer transition-all size-btn flex items-center justify-center bg-white text-gray-800");
+                        btn.className = "min-w-[46px] h-11 px-3.5 bg-gray-900 border border-gray-900 text-white text-xs font-black rounded-xl cursor-pointer size-btn shadow-md flex items-center justify-center scale-102";
                         selectedSize = size;
                     };
                     sizeContainer.appendChild(btn);
                 });
             }
 
-            // ボトムシートのなめらかな表示アニメーション
+            goToStep(1);
+
+            // モーダルの表示制御
             const modalEl = document.getElementById('product-modal');
             modalEl.classList.remove('hidden');
             setTimeout(() => {
@@ -493,20 +449,56 @@
             document.body.style.overflow = 'hidden';
         }
 
+        // STEPの切り替えロジック（画面が小さくても完全に崩れない独立ポップアップ構造）
+        function goToStep(step) {
+            currentStep = step;
+            const step1 = document.getElementById('modal-step-1');
+            const step2 = document.getElementById('modal-step-2');
+            const primaryBtn = document.getElementById('modal-primary-btn');
+            
+            // スクロール位置を最上部に強制リセット（スクロールバグ対策）
+            document.getElementById('modal-scroll-body').scrollTop = 0;
+
+            if (activeProduct && activeProduct.status === '生産中・準備中') {
+                primaryBtn.innerHTML = `ただいま準備中です`;
+                primaryBtn.className = "w-3/4 md:w-full bg-gray-200 text-gray-400 font-bold h-12 rounded-xl flex items-center justify-center text-xs shadow-none pointer-events-none";
+                step1.classList.remove('hidden');
+                step2.classList.add('hidden');
+                return;
+            }
+
+            if (step === 1) {
+                step1.classList.remove('hidden');
+                step2.classList.add('hidden');
+                primaryBtn.innerHTML = `サイズ・数量を選ぶ <i class="fa-solid fa-chevron-right text-[10px]"></i>`;
+                primaryBtn.className = "w-3/4 md:w-full bg-gray-900 hover:bg-gray-800 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-gray-900/10 active:scale-[0.98]";
+            } else {
+                step1.classList.add('hidden');
+                step2.classList.remove('hidden');
+                primaryBtn.innerHTML = `<i class="fa-solid fa-plus text-xs"></i> カートに追加する`;
+                primaryBtn.className = "w-3/4 md:w-full bg-blue-600 hover:bg-blue-700 text-white font-black h-12 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer text-xs md:text-sm shadow-lg shadow-blue-600/10 active:scale-[0.98]";
+            }
+        }
+
+        function handlePrimaryAction() {
+            if (currentStep === 1) {
+                goToStep(2);
+            } else {
+                addToCart();
+            }
+        }
+
         function updateModalImage() {
             if (!activeProduct || activeProduct.images.length === 0) {
                 document.getElementById('modal-main-image').src = 'https://placehold.co/400?text=No+Image';
                 return;
             }
             document.getElementById('modal-main-image').src = activeProduct.images[currentImageIdx];
-            
             const thumbs = document.getElementById('modal-thumbnails').querySelectorAll('img');
             thumbs.forEach((t, idx) => {
-                if (idx === currentImageIdx) {
-                    t.className = "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-900 opacity-100 scale-105 shrink-0 transition-all shadow-3xs";
-                } else {
-                    t.className = "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-100 opacity-50 shrink-0 transition-all";
-                }
+                t.className = idx === currentImageIdx 
+                    ? "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-900 opacity-100 scale-105 shrink-0 transition-all shadow-3xs"
+                    : "w-11 h-11 object-contain bg-white rounded-lg border-2 border-gray-100 opacity-50 shrink-0 transition-all";
             });
         }
 
@@ -523,8 +515,6 @@
         }
 
         function changeModalQty(val) {
-            if(activeProduct && activeProduct.status === '生産中・準備中') return;
-
             const qtyInput = document.getElementById('modal-qty');
             let nextVal = parseInt(qtyInput.value) + val;
             if (nextVal >= 1) qtyInput.value = nextVal;
@@ -532,13 +522,8 @@
 
         function changeCartQty(index, val) {
             let nextVal = cart[index].qty + val;
-            if (nextVal >= 1) {
-                cart[index].qty = nextVal;
-            } else {
-                cart.splice(index, 1);
-            }
-            saveCartToStorage();
-            updateCart();
+            if (nextVal >= 1) { cart[index].qty = nextVal; } else { cart.splice(index, 1); }
+            saveCartToStorage(); updateCart();
         }
 
         function closeModal() {
@@ -547,55 +532,31 @@
             modalEl.classList.remove('opacity-100');
             modalEl.classList.add('opacity-0');
             modalEl.style.pointerEvents = 'none';
-            
-            setTimeout(() => {
-                modalEl.classList.add('hidden');
-            }, 350);
+            setTimeout(() => modalEl.classList.add('hidden'), 300);
             document.body.style.overflow = '';
         }
 
         function addToCart() {
-            if (activeProduct && activeProduct.status === '生産中・準備中') return;
-
-            if (!selectedSize) {
-                showToast('サイズを選択してください！', 'error');
-                return;
-            }
+            if (!selectedSize) { showToast('サイズを選択してください！', 'error'); return; }
             const qty = parseInt(document.getElementById('modal-qty').value);
             if (activeProduct) {
-                const existingItem = cart.find(item => 
-                    item.product.id === activeProduct.id && item.size === selectedSize
-                );
-
-                if (existingItem) {
-                    existingItem.qty += qty;
-                } else {
-                    cart.push({ product: activeProduct, size: selectedSize, qty: qty });
-                }
-
-                saveCartToStorage();
-                updateCart();
-                closeModal();
-                toggleCartModal();
+                const existingItem = cart.find(item => item.product.id === activeProduct.id && item.size === selectedSize);
+                if (existingItem) { existingItem.qty += qty; } else { cart.push({ product: activeProduct, size: selectedSize, qty: qty }); }
+                saveCartToStorage(); updateCart(); closeModal(); toggleCartModal();
                 showToast('カートに商品を追加しました');
             }
         }
 
         function removeFromCart(index) {
-            cart.splice(index, 1);
-            saveCartToStorage();
-            updateCart();
+            cart.splice(index, 1); saveCartToStorage(); updateCart();
             showToast('カートから削除しました', 'error');
         }
 
-        function saveCartToStorage() {
-            localStorage.setItem('topland_cart', JSON.stringify(cart));
-        }
+        function saveCartToStorage() { localStorage.setItem('topland_cart', JSON.stringify(cart)); }
 
         function updateCart() {
             const totalQty = cart.reduce((sum, item) => sum + item.qty, 0);
             document.getElementById('cart-count').innerText = totalQty;
-            
             const container = document.getElementById('cart-list');
             container.innerHTML = '';
 
@@ -606,14 +567,11 @@
             }
 
             let orderTokens = [];
-
             cart.forEach((item, index) => {
                 const div = document.createElement('div');
                 div.className = "flex items-center gap-2.5 bg-gray-50 p-2.5 rounded-xl border border-gray-100";
-                const firstImg = item.product.images[0] || 'https://placehold.co/400?text=No+Image';
-                
                 div.innerHTML = `
-                    <img src="${firstImg}" class="w-12 h-12 object-contain bg-white rounded-lg border border-gray-100 shrink-0">
+                    <img src="${item.product.images[0] || 'https://placehold.co/400?text=No+Image'}" class="w-12 h-12 object-contain bg-white rounded-lg border border-gray-100 shrink-0">
                     <div class="grow min-w-0">
                         <h4 class="text-xs font-bold text-gray-900 truncate">${item.product.name}</h4>
                         <div class="flex items-center justify-between mt-1 gap-1">
@@ -633,29 +591,19 @@
                 container.appendChild(div);
                 orderTokens.push(`[${item.product.id}]_${item.size}x${item.qty}`);
             });
-
             document.getElementById('order-string-input').value = `ORDER//${orderTokens.join('//')}`;
         }
 
         function copyOrderString() {
             const input = document.getElementById('order-string-input');
             if (cart.length === 0) return;
-            
             if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(input.value).then(() => {
-                    showToast('注文用コードをコピーしました！');
-                }).catch(() => {
-                    fallbackCopy(input);
-                });
-            } else {
-                fallbackCopy(input);
-            }
+                navigator.clipboard.writeText(input.value).then(() => showToast('注文用コードをコピーしました！')).catch(() => fallbackCopy(input));
+            } else { fallbackCopy(input); }
         }
 
         function fallbackCopy(input) {
-            input.select();
-            input.setSelectionRange(0, 99999);
-            document.execCommand('copy');
+            input.select(); input.setSelectionRange(0, 99999); document.execCommand('copy');
             showToast('注文用コードをコピーしました！');
         }
 
